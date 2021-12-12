@@ -6,9 +6,14 @@ Njegovi hoteli nisu građeni šablonski, već imaju različiti broj spratova i s
 
 Vlasnik želi da ima mogućnost da vidi koje su sobe zauzete a koje ne, da vidi spisak soba koje je izdao određeni recepcioner, i da na osnovu trenutne zauzetosti soba u hotelu izračuna dnevnu zaradu hotela (Za višekrevetne sobe se računa da se svaki krevet plaća posebo, po ceni koju je hotel propisao).
 Za sve ovo potrebni su sledeći podaci:
+
 •	O hotelu – naziv, lokacija, broj spratova, broj soba po spratu, cena za svaku od kategorija soba, spisak gostiju i spisak zaposlenih
+
 •	O sobi – broj sobe, broj kreveta, kategorija, gost na čije je ime izdata(ako je izdata, ako ne null)
+
 •	O recepcioneru – ime, prezime, broj njegove id kartice, spisak soba koje je izdao
+
 •	O gostu – ime, prezime, broj lične karte, informacije o sobi
+
 
 ![DIjagram](https://user-images.githubusercontent.com/94280040/145727914-c210159a-bfab-4075-a34b-bd0429dd8410.jpg)
