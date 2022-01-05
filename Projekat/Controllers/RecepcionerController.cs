@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace Projekat.Controllers
 {
@@ -76,10 +77,12 @@ namespace Projekat.Controllers
                 if(c<'0'||c>'9') return BadRequest("ID treba da se sastoji samo iz brojeva!");
             }
 
-            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).Include(h => h.Recepcioneri).FirstOrDefault();
+            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).Include(h => h.Recepcioneri).ThenInclude(r => r.IzdateSobe).FirstOrDefault();
             if(Hotel==null) return BadRequest("Nepostojeci hotel!");
 
             Recepcioner rec=null;
+
+            if(Hotel.Recepcioneri.Count==1) return BadRequest("Hotel mora imati bar jednog recepcionera!");
 
             foreach(Recepcioner r in Hotel.Recepcioneri)
             {
@@ -92,6 +95,22 @@ namespace Projekat.Controllers
             }
             if(rec==null) return Ok("Recepcioner nije ni bio u bazi!");
 
+            if(rec.IzdateSobe.Count!=0)
+            {
+                Recepcioner zamena=null;
+                foreach(Recepcioner r in Hotel.Recepcioneri)
+                {
+                    if(r.ID_kartica!=id) zamena=r;
+                    if(zamena!=null) break;
+                }
+
+                foreach(Soba s in rec.IzdateSobe)
+                {
+                    s.Recepcioner=zamena;
+                }
+            }
+
+            
             try
             {
                 Context.Remove(rec);

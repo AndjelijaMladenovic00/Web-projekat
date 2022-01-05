@@ -56,4 +56,3 @@ D:\III godina\I semestar\Web programiranje\Projekat\Projekat\obj\Debug\net5.0\Pr
 D:\III godina\I semestar\Web programiranje\Projekat\Projekat\obj\Debug\net5.0\ref\Projekat.dll
 D:\III godina\I semestar\Web programiranje\Projekat\Projekat\obj\Debug\net5.0\Projekat.pdb
 D:\III godina\I semestar\Web programiranje\Projekat\Projekat\obj\Debug\net5.0\Projekat.genruntimeconfig.cache
-D:\III godina\I semestar\Web programiranje\Projekat\Projekat\obj\Debug\net5.0\Projekat.csproj.CopyComplete
