@@ -57,6 +57,28 @@ namespace Projekat.Controllers
             }
         }
 
+        [Route("PreuzimanjeSoba/{hotel}")]
+        [HttpGet]
+        public async Task<ActionResult> PreuzmiSobe(string hotel)
+        {
+            var hot=Context.Hoteli.Where(h=> h.Naziv==hotel).FirstOrDefault();
+            if(hot==null) return BadRequest("Nepostojeci hotel!");
+
+            var sobe=await Context.Sobe.Where(s=>s.Hotel.Naziv==hotel).Include(s=>s.Recepcioner).ToListAsync();
+
+            if(sobe.Count==0) return BadRequest("Nema soba!");
+
+            try
+            {
+                return Ok(sobe);
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+        }
+
         [Route("UklanjanjeSobe/{hotel}/{broj}")]
         [HttpDelete]
         public async Task<ActionResult> BrisanjeSobe(string hotel, int broj)

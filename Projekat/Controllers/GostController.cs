@@ -199,6 +199,34 @@ namespace Projekat.Controllers
             return Ok(gost);
         }
 
+        [Route("PreuzmiGosta/{hotel}/{brSobe}")]
+        [HttpGet]
+        public async Task<ActionResult> PreuzimanjeGosta(string hotel, int brSobe)
+        {
+            var hot=Context.Hoteli.Where(h=>h.Naziv==hotel).FirstOrDefault();
+            if(hot==null) return BadRequest("Nepostojeci hotel!");
+
+            var gosti=await Context.Gosti.Where(g=> g.Hotel.Naziv==hotel).Include(g=> g.Soba).ToListAsync();
+            if(gosti==null || gosti.Count==0) return BadRequest("Ovakvi podaci ne postoje!");
+
+            Gost gost=null;
+
+            foreach(Gost g in gosti)
+            {
+                if(g.Soba.Count==0) continue;
+                foreach(Soba s in g.Soba)
+                {
+                    if(s.BrojSobe==brSobe)
+                    {
+                        gost=g;
+                        break;
+                    }
+                }
+                if(g!=null) break;
+            }
+            return Ok(gost);
+        }
+
     }
 
 }

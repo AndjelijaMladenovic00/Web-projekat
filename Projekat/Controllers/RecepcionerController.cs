@@ -125,13 +125,17 @@ namespace Projekat.Controllers
 
         [Route("PreuzimanjeRecepcionera/{hotel}")]
         [HttpGet]
-        public async Task<ActionResult> PreuzmiRecepcionere()
+        public async Task<ActionResult> PreuzmiRecepcionere(string hotel)
         {
+            var hot=Context.Hoteli.Where(h=>h.Naziv==hotel).FirstOrDefault();
+
+            if(hot==null) return BadRequest("Nepostojeci hotel!");
+
+            var recepcioneri= await Context.Recepcioneri.Where(p=> p.Hotel.Naziv==hotel).Include(r=> r.IzdateSobe).ToListAsync();
+
             try
             {
-                return Ok(await Context.Recepcioneri.Select(p=>
-                new {RecepcionerID=p.RecepcionerID, Ime=p.Ime,Prezime=p.Prezime,
-                Id_kartica=p.ID_kartica, IzdateSobe=p.IzdateSobe }).ToListAsync());
+                return Ok(recepcioneri);
             }
             catch(Exception e)
             {
@@ -183,6 +187,7 @@ namespace Projekat.Controllers
                 }
             }
             if(soba==null) return BadRequest("Nepostojeca soba!");
+            if(soba.Izdata==true) return BadRequest("Soba je vec izdata!");
 
             Gost gost=null;
             foreach(Gost g in Hotel.Gosti)
