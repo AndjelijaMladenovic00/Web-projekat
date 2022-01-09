@@ -1,0 +1,61 @@
+.kontejner
+{
+    display:flex;
+    flex-direction:column;
+    background-color: beige;
+    border: 1px solid black;
+}
+
+.meniKontejner
+{
+
+    background-color: gray;
+    border: 1px solid black;
+}
+
+.naslov
+{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+}
+
+.ostalo
+{
+    display:flex;
+    flex-direction: row;
+}
+
+.naslovLabela
+{
+    font-size: large;
+}
+
+.podaciKontejner
+{ 
+    border: 1px solid black;
+}
+
+.pomocniKontejneri
+{
+    display: flex;
+    flex-direction: row;
+}
+
+.labelePodataka
+{
+    align-self: flex-start;
+}
+
+.lista
+{
+    align-self: center;
+}
+
+.dugmad
+{
+    display: flex;
+    align-items: center;
+    
+}

@@ -307,7 +307,9 @@ namespace Projekat.Controllers
                        
                    } 
 
-                   return Ok(I*hotel.Cena_I_kat+II*hotel.Cena_II_kat+III*hotel.Cena_III_kat);  
+                   int zarada=I*hotel.Cena_I_kat+II*hotel.Cena_II_kat+III*hotel.Cena_III_kat;
+
+                   return Ok(zarada);  
                }
                else return BadRequest("Ne postoji hotel "+imeHotela);
            }
