@@ -56,7 +56,7 @@ namespace Projekat.Controllers
             {
                 Context.Add(rec);
                 await Context.SaveChangesAsync();
-                return Ok("Dodat recepcioner!");
+                return Ok(rec);
             }
             catch(Exception e)
             {
@@ -65,7 +65,7 @@ namespace Projekat.Controllers
 
         }
 
-        [Route("Uklanjanje recepcionera/{hotel}/{id}")]
+        [Route("UklanjanjeRecepcionera/{hotel}/{id}")]//id kartica, ne id u bazi
         [HttpDelete]
         public async Task<ActionResult>UkloniRecepcionera(string hotel, string id)
         {
@@ -214,8 +214,110 @@ namespace Projekat.Controllers
             {
                 return BadRequest(e.Message);
             }
-            
+
         }
+
+        [Route("IzmenaBrojaIDKartice/{stariBroj}/{noviBroj}")]
+        [HttpPut]
+        public async Task<ActionResult> IzmeniBrojIDKartice(string stariBroj, string noviBroj)
+        {
+            if(stariBroj.Length!=5 ||noviBroj.Length!=5) return BadRequest("Nevalidni brojevi ID kartica!");
+
+            foreach(char c in stariBroj.ToCharArray())
+            {
+               if(c>'9'||c<'0') return BadRequest("Broj ID karte moze da sadrzi samo cifre!");
+            }
+
+            
+            foreach(char c in noviBroj.ToCharArray())
+            {
+                if(c>'9'||c<'0') return BadRequest("Broj ID karte moze da sadrzi samo cifre!");
+            }
+
+            var recepcioner=Context.Recepcioneri.Where(p => p.ID_kartica==stariBroj).FirstOrDefault();
+            if(recepcioner==null) return BadRequest("Ne postoji recepcioner sa brojem ID kartice "+stariBroj);
+            recepcioner.ID_kartica=noviBroj;
+
+            try
+            {
+                Context.Recepcioneri.Update(recepcioner);
+                await Context.SaveChangesAsync();
+
+                return Ok(recepcioner);
+
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [Route("IzmenaImenaRecepcionera/{idk}/{novoIme}")]
+        [HttpPut]
+        public async Task<ActionResult> IzmeniImeRecepcionera(string idk, string novoIme)
+        {
+            if(idk.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
+
+            foreach(char c in idk.ToCharArray())
+            {
+                if(c>'9'||c<'0') return BadRequest("Broj ID kartice moze da sadrzi samo cifre!");
+            }
+
+            if(novoIme.Length>50) return BadRequest("Ime predugacko!");
+
+            var rec=Context.Recepcioneri.Where(g => g.ID_kartica==idk).FirstOrDefault();
+            if(rec==null) return BadRequest("Ne postoji recepcioner sa ID karticom "+idk);
+
+            rec.Ime=novoIme;
+
+            try
+            {
+                Context.Update(rec);
+                await Context.SaveChangesAsync();
+
+                return Ok(rec);
+
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [Route("IzmenaPrezimenaRecepcionera/{idk}/{novoPrezime}")]
+        [HttpPut]
+        public async Task<ActionResult> IzmeniPrezimeRecepcionera(string idk, string novoPrezime)
+        {
+            if(idk.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
+
+            foreach(char c in idk.ToCharArray())
+            {
+                if(c>'9'||c<'0') return BadRequest("Broj ID kartice moze da sadrzi samo cifre!");
+            }
+
+            if(novoPrezime.Length>50) return BadRequest("Ime predugacko!");
+
+            var rec=Context.Recepcioneri.Where(g => g.ID_kartica==idk).FirstOrDefault();
+            if(rec==null) return BadRequest("Ne postoji gost sa brojem licne karte "+rec);
+
+            rec.Prezime=novoPrezime;
+
+            try
+            {
+                Context.Update(rec);
+                await Context.SaveChangesAsync();
+
+                return Ok(rec);
+
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+        }
+            
+       
         
     }
 }

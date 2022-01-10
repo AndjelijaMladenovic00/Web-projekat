@@ -28,12 +28,12 @@ export class Hotel{
                             g.json().then(gs=>{
                                 let gost=new Gost(gs.gostID, gs.ime, gs.prezime, gs.brojLicneKarte);
                                 soba.gost=gost;
-                            })
-                        })
+                            });
+                        });
                     }
 
                     this.Sobe.push(soba);
-                })
+                });
 
                 fetch("https://localhost:5001/Recepcioner/PreuzimanjeRecepcionera/"+this.naziv)
                 .then(r=>{
@@ -47,19 +47,19 @@ export class Hotel{
                                         
                                         rec.Sobe.push(s);
                                     }
-                                })
-                            })
+                                });
+                            });
                             this.Recepcioneri.push(rec); 
-                        })
+                        });
 
                         this.prikaziHotel(document.body);
                         
-                     })
+                     });
                      
                      
-                })
+                });
 
-            })
+            });
 
         });
 
@@ -89,12 +89,10 @@ export class Hotel{
             z.json().then(zh=>{
                 zarada=zh;
                 zaradaLabela.innerHTML="Dnevna zarada: "+zarada;
-            })
-        })
-
+            });
+        });
        
         naslovKontejner.appendChild(zaradaLabela);
-
 
         let ostaloKontejner=document.createElement("div");
         ostaloKontejner.className="ostalo";
@@ -109,6 +107,7 @@ export class Hotel{
 
     prikaziMeni(host){
 
+        host.innerHTML="";
         let recepcionerDiv=document.createElement("div");
 
         let recepcionerLabela=document.createElement("label");
@@ -138,6 +137,12 @@ export class Hotel{
 
 
         this.prikaziPodatke(podaciKontejner);
+
+        let unosKontejner=document.createElement("div");
+        unosKontejner.className="unosKontejner";
+        host.appendChild(unosKontejner);
+
+        this.prikaziUnos(unosKontejner);
     }
 
     prikaziPodatke(host){
@@ -154,6 +159,11 @@ export class Hotel{
             }
         });
 
+
+        let naslovDiv=document.createElement("div");
+        naslovDiv.className="naslovLabela";
+        naslovDiv.innerHTML="Podaci o recepcioneru";
+        host.appendChild(naslovDiv);
 
         let imeDiv=document.createElement("div");
         imeDiv.className="pomocniKontejner";
@@ -237,15 +247,226 @@ export class Hotel{
         dugmadDiv.className="dugmad";
         host.appendChild(dugmadDiv);
 
+
         let izmeniDugme=document.createElement("button");
         izmeniDugme.innerHTML="Izmeni";
-        izmeniDugme.onclick=(ev)=>this.izmeniPodatke();
+        izmeniDugme.onclick=(ev)=>this.izmeniPodatke(recepcioner, imeTbx, prezimeTbx, idKarticaTbx, host );
         dugmadDiv.appendChild(izmeniDugme);
 
         let otpustiDugme=document.createElement("button");
         otpustiDugme.innerHTML="Otpusti";
-        otpustiDugme.onclick=(ev)=>this.otpusti();
+        otpustiDugme.onclick=(ev)=>this.otpustiRecepcionera(recepcioner);
         dugmadDiv.appendChild(otpustiDugme);
-        //ovde treba da se izmeni kad se ove funkcije napisu
+        
+    }
+
+    prikaziUnos(host){
+
+        let naslovDiv=document.createElement("div");
+        naslovDiv.className="naslovLabela";
+        naslovDiv.innerHTML="Dodavanje novog recepcionera";
+        host.appendChild(naslovDiv);
+
+        let unosDiv=document.createElement("div");
+        unosDiv.className="pomocniKontejner";
+        host.appendChild(unosDiv);
+
+        let imeDiv=document.createElement("div");
+        imeDiv.className="pomocniKontejner";
+        unosDiv.appendChild(imeDiv);
+
+        let imeLabel=document.createElement("label");
+        imeLabel.className="labelePodataka";
+        imeLabel.innerHTML="Ime: ";
+        imeDiv.appendChild(imeLabel);
+
+        let imeTbx=document.createElement("input");
+        imeTbx.setAttribute("type", "text");
+        imeDiv.appendChild(imeTbx);
+
+        let prezimeDiv=document.createElement("div");
+        prezimeDiv.className="pomocniKontejner";
+        unosDiv.appendChild(prezimeDiv);
+
+        let prezimeLabel=document.createElement("label");
+        prezimeLabel.className="labelePodataka";
+        prezimeLabel.innerHTML="Prezime: ";
+        prezimeDiv.appendChild(prezimeLabel);
+
+        let prezimeTbx=document.createElement("input");
+        prezimeTbx.setAttribute("type", "text");
+        prezimeDiv.appendChild(prezimeTbx);
+
+        
+        let idKarticaDiv=document.createElement("div");
+        idKarticaDiv.className="pomocniKontejner";
+        unosDiv.appendChild(idKarticaDiv);
+
+        let idKarticaLabel=document.createElement("label");
+        idKarticaLabel.className="labelePodataka";
+        idKarticaLabel.innerHTML="Br. ID kartice: ";
+        idKarticaDiv.appendChild(idKarticaLabel);
+
+        let idKarticaTbx=document.createElement("input");
+        idKarticaTbx.setAttribute("type", "text");
+        idKarticaDiv.appendChild(idKarticaTbx);
+
+        let okDugme=document.createElement("button");
+        okDugme.innerHTML="OK";
+        okDugme.onclick=(ev)=>this.zaposliRecepcionera(imeTbx, prezimeTbx, idKarticaTbx);
+        host.appendChild(okDugme);
+    }
+
+    updatePrikazaPodataka()
+    {
+        let meniKontejner=this.kontejner.querySelector(".meniKontejner");
+        meniKontejner.innerHTML="";
+        this.prikaziMeni(meniKontejner);
+    }
+
+    izmeniPodatke(recepcioner, imeTbx, prezimeTbx, idKarticaTbx, host ){
+
+        let ime=imeTbx.value;
+        let prezime=prezimeTbx.value;
+        let idKartica=idKarticaTbx.value;
+        let zaIzmenu;
+
+        if(ime==="" && prezime==="" && idKartica=="") return;
+
+        this.Recepcioneri.forEach(r=>{
+            if (r.id===recepcioner.id)
+                zaIzmenu=r;
+        });
+
+        if(idKartica==""||idKartica==null||idKartica==undefined) idKartica=recepcioner.idKartica;//za slucaj da se ne menja id kartica
+
+        if(idKartica.length!=5 || parseInt(idKartica)===NaN) {
+            alert("Broj ID kartice treba da se sastoji od tacno 5 cifara!");
+            return;
+        }
+
+        if(ime!=null && ime!=undefined && ime!=""){
+            fetch("https://localhost:5001/Recepcioner/IzmenaImenaRecepcionera/"+idKartica+"/"+ime,
+            {
+                method:"PUT"
+            }).then(s=>{
+                if(s.ok){
+                    alert("Podaci o recepcioneru su izmenjeni!");
+                    zaIzmenu.ime=ime;
+                    this.updatePrikazaPodataka(host.parentNode.parentNode);
+                }
+                else{
+                    alert("Doslo je do greske!");
+                }
+               
+            });
+            
+        }
+
+        if(prezime!=null && prezime!=undefined && prezime!=""){
+            fetch("https://localhost:5001/Recepcioner/IzmenaPrezimenaRecepcionera/"+idKartica+"/"+prezime,
+            {
+                method:"PUT"
+            }).then(s=>{
+                if(s.ok){
+                    alert("Podaci o recepcioneru su izmenjeni!");
+                    zaIzmenu.prezime=prezime;
+                    this.updatePrikazaPodataka(host.parentNode.parentNode);
+                }
+                else{
+                    alert("Doslo je do greske!");
+                }
+            })
+            
+        }
+
+        if(idKarticaTbx.value.length===5 && parseInt(idKarticaTbx.value)!=NaN)
+        {
+            fetch("https://localhost:5001/Recepcioner/IzmenaBrojaIDKartice/"+recepcioner.idKartica+"/"+idKartica,
+            {
+                method:"PUT"
+            }).then(s=>{
+                if(s.ok){
+                    alert("Podaci o recepcioneru su izmenjeni!");
+                    zaIzmenu.idKartica=idKartica;
+                    this.updatePrikazaPodataka(host.parentNode.parentNode);
+                }
+                else{
+                    alert("Doslo je do greske!");
+                }
+            })
+           
+        }
+        
+    }
+
+    otpustiRecepcionera(recepcioner){
+
+
+        fetch("https://localhost:5001/Recepcioner/UklanjanjeRecepcionera/"+this.naziv+"/"+recepcioner.idKartica,
+        {
+           method:"DELETE"
+        }).then(r=>{
+           if(r.ok){//opet ucitavam recepcionere jer je kontroler namesten da random recepcioneru prebaci sobe
+            this.Recepcioneri=[];
+
+            fetch("https://localhost:5001/Recepcioner/PreuzimanjeRecepcionera/"+this.naziv)
+            .then(r=>{
+                r.json().then(recepcioneri=>{
+                    recepcioneri.forEach(recep => {
+                        let rec=new Recepcioner(recep.recepcionerID, recep.ime, recep.prezime, recep.iD_kartica);
+                        recep.izdateSobe.forEach(is=>{
+                            id=is.sobaID;
+                            this.Sobe.forEach(s=>{
+                                if(s.id===id){
+                                    
+                                    rec.Sobe.push(s);
+                                }
+                            });
+                        });
+                        this.Recepcioneri.push(rec); 
+                    });
+                    this.updatePrikazaPodataka();
+                 });
+               });
+           }
+           else{
+               alert("Doslo je do greske prilikom brisanja!");
+           }
+        });
+    }
+
+    zaposliRecepcionera(imeTbx, prezimeTbx, idKarticaTbx){
+
+        let ime=imeTbx.value;
+        if(ime==="") alert("Nedostaje ime!");
+
+        let prezime=prezimeTbx.value;
+        if(prezime==="") alert("Nedostaje prezime!");
+
+        let idKartica=idKarticaTbx.value;
+        if(idKartica==="") alert("Nedostaje broj id kartice!");
+
+        if(idKartica.length!=5 || parseInt(idKartica)===NaN) {
+            alert("Broj ID kartice treba da se sastoji od tacno 5 cifara!");
+            return;
+        }
+
+        fetch("https://localhost:5001/Recepcioner/UnosRecepcionera/"+ime+"/"+prezime+"/"+idKartica+"/"+this.naziv,
+        {
+            method:"POST"
+        })
+        .then(r=>{
+            if(r.ok){
+                r.json().then(rc=>{
+                    let rec=new Recepcioner(rc.recepcionerID, rc.ime, rc.prezime, rc.iD_kartica);
+                    this.Recepcioneri.push(rec);
+                    alert("Recepcioner dodat!")
+
+                    this.updatePrikazaPodataka();
+                });
+            }
+        });
+
     }
 }

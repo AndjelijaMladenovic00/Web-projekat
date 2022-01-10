@@ -4,6 +4,7 @@
     flex-direction:column;
     background-color: beige;
     border: 1px solid black;
+    flex: 1 1 200px;
 }
 
 .meniKontejner
@@ -30,6 +31,7 @@
 .naslovLabela
 {
     font-size: large;
+    align-self: center;
 }
 
 .podaciKontejner
@@ -39,8 +41,9 @@
 
 .pomocniKontejneri
 {
-    display: flex;
+    display:flex;
     flex-direction: row;
+    align-items: flex-end;
 }
 
 .labelePodataka
@@ -58,4 +61,9 @@
     display: flex;
     align-items: center;
     
+}
+
+.unosKontejner
+{
+    border: 1px solid black;
 }
