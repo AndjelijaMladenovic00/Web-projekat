@@ -172,11 +172,20 @@ namespace Projekat.Controllers
             var gost=Context.Gosti.Where(g => g.BrojLicneKarte==blk).FirstOrDefault();
             if(gost==null) return Ok("Gost ne postoji!");
 
+            if(gost.Soba!=null && gost.Soba.Count!=0)
+            {
+                foreach(Soba s in gost.Soba)
+                {
+                    s.Gost=null;
+                    s.Izdata=false;
+                }
+            }
+
             try
             {
                 Context.Gosti.Remove(gost);
                 await Context.SaveChangesAsync();
-                return Ok("Gost obrisan!");
+                return Ok(gost);
             }
             catch(Exception e)
             {

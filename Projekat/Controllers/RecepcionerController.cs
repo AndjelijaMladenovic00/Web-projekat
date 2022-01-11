@@ -143,7 +143,7 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzdavanjeSobe/{hotel}/{id}/{brs}")]
+        [Route("IzdavanjeSobe/{hotel}/{id}/{brs}/{blk}")]
         [HttpPut]
         public async Task<ActionResult> IzdajSobu(string hotel, string id, int brs, string blk)
         {
@@ -217,9 +217,9 @@ namespace Projekat.Controllers
 
         }
 
-        [Route("IzmenaBrojaIDKartice/{stariBroj}/{noviBroj}")]
+        [Route("IzmenaBrojaIDKartice/{stariBroj}/{noviBroj}/{hotel}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniBrojIDKartice(string stariBroj, string noviBroj)
+        public async Task<ActionResult> IzmeniBrojIDKartice(string stariBroj, string noviBroj, string hotel)
         {
             if(stariBroj.Length!=5 ||noviBroj.Length!=5) return BadRequest("Nevalidni brojevi ID kartica!");
 
@@ -234,7 +234,9 @@ namespace Projekat.Controllers
                 if(c>'9'||c<'0') return BadRequest("Broj ID karte moze da sadrzi samo cifre!");
             }
 
-            var recepcioner=Context.Recepcioneri.Where(p => p.ID_kartica==stariBroj).FirstOrDefault();
+            if(hotel.Length>70) return BadRequest("Neogoverajuce ime hotela!");
+
+            var recepcioner=Context.Recepcioneri.Where(p => p.ID_kartica==stariBroj && p.Hotel.Naziv==hotel).FirstOrDefault();
             if(recepcioner==null) return BadRequest("Ne postoji recepcioner sa brojem ID kartice "+stariBroj);
             recepcioner.ID_kartica=noviBroj;
 
@@ -252,10 +254,12 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzmenaImenaRecepcionera/{idk}/{novoIme}")]
+        [Route("IzmenaImenaRecepcionera/{idk}/{novoIme}/{hotel}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniImeRecepcionera(string idk, string novoIme)
+        public async Task<ActionResult> IzmeniImeRecepcionera(string idk, string novoIme, string hotel)
         {
+            if(hotel.Length>70) return BadRequest("Neogoverajuce ime hotela!");
+
             if(idk.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
 
             foreach(char c in idk.ToCharArray())
@@ -265,7 +269,7 @@ namespace Projekat.Controllers
 
             if(novoIme.Length>50) return BadRequest("Ime predugacko!");
 
-            var rec=Context.Recepcioneri.Where(g => g.ID_kartica==idk).FirstOrDefault();
+            var rec=Context.Recepcioneri.Where(g => g.ID_kartica==idk && g.Hotel.Naziv==hotel).FirstOrDefault();
             if(rec==null) return BadRequest("Ne postoji recepcioner sa ID karticom "+idk);
 
             rec.Ime=novoIme;
@@ -284,10 +288,12 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzmenaPrezimenaRecepcionera/{idk}/{novoPrezime}")]
+        [Route("IzmenaPrezimenaRecepcionera/{idk}/{novoPrezime}/{hotel}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniPrezimeRecepcionera(string idk, string novoPrezime)
+        public async Task<ActionResult> IzmeniPrezimeRecepcionera(string idk, string novoPrezime, string hotel)
         {
+            if(hotel.Length>70) return BadRequest("Neogoverajuce ime hotela!");
+
             if(idk.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
 
             foreach(char c in idk.ToCharArray())
@@ -297,7 +303,7 @@ namespace Projekat.Controllers
 
             if(novoPrezime.Length>50) return BadRequest("Ime predugacko!");
 
-            var rec=Context.Recepcioneri.Where(g => g.ID_kartica==idk).FirstOrDefault();
+            var rec=Context.Recepcioneri.Where(g => g.ID_kartica==idk && g.Hotel.Naziv==hotel).FirstOrDefault();
             if(rec==null) return BadRequest("Ne postoji gost sa brojem licne karte "+rec);
 
             rec.Prezime=novoPrezime;

@@ -63,33 +63,6 @@ namespace Projekat.Controllers
 
         }
 
-       [Route("BrisanjeHotela/{ime}")]
-       [HttpDelete]
-       public async Task<ActionResult> IzbrisiHotel(string ime)
-       {
-           if(ime.Length>70) return BadRequest("Ime predugacko da bi hotel postojao u bazi!");
-
-           try
-           {
-               var hotel= Context.Hoteli.Where(p => p.Naziv==ime).FirstOrDefault();
-               if(hotel!=null)
-               {
-                    Context.Hoteli.Remove(hotel);
-                    await Context.SaveChangesAsync();
-                    return Ok($"Hotel {ime} je obrisan");
-               }
-               else
-               {
-                   return Ok("Takav hotel nije ni postojao u bazi!");
-               }
-
-           }
-           catch(Exception e)
-           {
-               return BadRequest(e.Message);
-           }
-       }
-
        [Route("PreuzimanjeHotela")]
        [HttpGet]
        public async Task<ActionResult> PreuzmiHotele()

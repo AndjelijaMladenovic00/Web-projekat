@@ -346,7 +346,7 @@ export class Hotel{
         }
 
         if(ime!=null && ime!=undefined && ime!=""){
-            fetch("https://localhost:5001/Recepcioner/IzmenaImenaRecepcionera/"+idKartica+"/"+ime,
+            fetch("https://localhost:5001/Recepcioner/IzmenaImenaRecepcionera/"+idKartica+"/"+ime+"/"+this.naziv,
             {
                 method:"PUT"
             }).then(s=>{
@@ -364,7 +364,7 @@ export class Hotel{
         }
 
         if(prezime!=null && prezime!=undefined && prezime!=""){
-            fetch("https://localhost:5001/Recepcioner/IzmenaPrezimenaRecepcionera/"+idKartica+"/"+prezime,
+            fetch("https://localhost:5001/Recepcioner/IzmenaPrezimenaRecepcionera/"+idKartica+"/"+prezime+"/"+this.naziv,
             {
                 method:"PUT"
             }).then(s=>{
@@ -382,7 +382,7 @@ export class Hotel{
 
         if(idKarticaTbx.value.length===5 && parseInt(idKarticaTbx.value)!=NaN)
         {
-            fetch("https://localhost:5001/Recepcioner/IzmenaBrojaIDKartice/"+recepcioner.idKartica+"/"+idKartica,
+            fetch("https://localhost:5001/Recepcioner/IzmenaBrojaIDKartice/"+recepcioner.idKartica+"/"+idKartica+"/"+this.naziv,
             {
                 method:"PUT"
             }).then(s=>{
@@ -426,6 +426,7 @@ export class Hotel{
                         });
                         this.Recepcioneri.push(rec); 
                     });
+                    alert("Recepcionar otpusten!")
                     this.updatePrikazaPodataka();
                  });
                });
