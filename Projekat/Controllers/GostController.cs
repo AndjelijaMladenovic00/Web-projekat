@@ -20,9 +20,9 @@ namespace Projekat.Controllers
             Context=context;
         }
 
-        [Route("DodavanjeGosta/{ime}/{prezime}/{blk}/{hotel}")]
+        [Route("DodavanjeGosta/{ime}/{prezime}/{blk}/{hotelID}")]
         [HttpPost]  
-        public async Task<ActionResult> DodajGosta(string ime, string prezime, string blk, string hotel)
+        public async Task<ActionResult> DodajGosta(string ime, string prezime, string blk, int hotelID)
         {
             if(ime=="") return BadRequest("Morate uneti ime gosta!");
             if(ime.Length>50) return BadRequest("Predugacko ime");
@@ -36,8 +36,7 @@ namespace Projekat.Controllers
                     if(c>'9'||c<'0') return BadRequest("Broj licne karte se sastoji samo od cifara!");
             }
 
-            if(hotel.Length>70) return BadRequest("Neodgovarajuce ime hotela!");
-            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).FirstOrDefault();
+            var Hotel=Context.Hoteli.Where(h => h.HotelID==hotelID).FirstOrDefault();
             if(Hotel==null) return BadRequest("Ne postoji navedeni hotel!");
 
             //validacija da ne postoji osoba sa tim brojem licne karte vec u bazi
@@ -62,25 +61,23 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzmenaBrojaLK/{stariBroj}/{noviBroj}")]
+        [Route("IzmenaBrojaLK/{gostID}/{noviBroj}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniBrojLK(string stariBroj, string noviBroj)
+        public async Task<ActionResult> IzmeniBrojLK(int gostID, string noviBroj)
         {
-            if(stariBroj.Length!=9 ||noviBroj.Length!=9) return BadRequest("Nevalidni brojevi lk!");
+            if(noviBroj.Length!=9) return BadRequest("Nevalidni brojevi lk!");
 
-            foreach(char c in stariBroj.ToCharArray())
-            {
-                if(c>'9'||c<'0') return BadRequest("Broj licne karte moze da sadrzi samo cifre!");
-            }
-
-            
             foreach(char c in noviBroj.ToCharArray())
             {
                 if(c>'9'||c<'0') return BadRequest("Broj licne karte moze da sadrzi samo cifre!");
             }
 
-            var gost=Context.Gosti.Where(p => p.BrojLicneKarte==stariBroj).FirstOrDefault();
-            if(gost==null) return BadRequest("Ne postoji gost sa brojem lk "+stariBroj);
+            var gost=Context.Gosti.Where(p => p.GostID==gostID).FirstOrDefault();
+            if(gost==null) return BadRequest("Ne postoji trazeni gost!");
+
+            var IstaLK= Context.Gosti.Where(p => p.BrojLicneKarte==noviBroj).FirstOrDefault();
+            if(IstaLK!=null) return BadRequest("Dva gosta ne mogu imati isti broj licne karte!");
+
             gost.BrojLicneKarte=noviBroj;
 
             try
@@ -97,19 +94,14 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzmenaImenaGosta/{blk}/{novoIme}")]
+        [Route("IzmenaImenaGosta/{gostID}/{novoIme}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniImeGosta(string blk, string novoIme)
+        public async Task<ActionResult> IzmeniImeGosta(int gostID, string novoIme)
         {
-            foreach(char c in blk.ToCharArray())
-            {
-                if(c>'9'||c<'0') return BadRequest("Broj licne karte moze da sadrzi samo cifre!");
-            }
-
             if(novoIme.Length>50) return BadRequest("Ime predugacko!");
 
-            var gost=Context.Gosti.Where(g => g.BrojLicneKarte==blk).FirstOrDefault();
-            if(gost==null) return BadRequest("Ne postoji gost sa brojem licne karte "+blk);
+            var gost=Context.Gosti.Where(g => g.GostID==gostID).FirstOrDefault();
+            if(gost==null) return BadRequest("Ne postoji trazeni gost!");
 
             gost.Ime=novoIme;
 
@@ -127,19 +119,14 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzmenaPrezimenaGosta/{blk}/{novoPrezime}")]
+        [Route("IzmenaPrezimenaGosta/{gostID}/{novoPrezime}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniPrezimeGosta(string blk, string novoPrezime)
+        public async Task<ActionResult> IzmeniPrezimeGosta(int gostID, string novoPrezime)
         {
-            foreach(char c in blk.ToCharArray())
-            {
-                if(c>'9'||c<'0') return BadRequest("Broj licne karte moze da sadrzi samo cifre!");
-            }
+            if(novoPrezime.Length>50) return BadRequest("Prezime predugacko!");
 
-            if(novoPrezime.Length>50) return BadRequest("Ime predugacko!");
-
-            var gost=Context.Gosti.Where(g => g.BrojLicneKarte==blk).FirstOrDefault();
-            if(gost==null) return BadRequest("Ne postoji gost sa brojem licne karte "+blk);
+            var gost=Context.Gosti.Where(g => g.GostID==gostID).FirstOrDefault();
+            if(gost==null) return BadRequest("Ne postoji trazeni gost!");
 
             gost.Prezime=novoPrezime;
 
@@ -158,18 +145,11 @@ namespace Projekat.Controllers
 
         }
 
-        [Route("BrisanjeGosta/{blk}")]
+        [Route("BrisanjeGosta/{gostID}")]
         [HttpDelete]
-        public async Task<ActionResult> ObrisiGosta(string blk)
+        public async Task<ActionResult> ObrisiGosta(int gostID)
         {
-            if(blk.Length!=9) return BadRequest("Neodgovarajuca duzina broja licne karte!");
-
-            foreach(char c in blk.ToCharArray())
-            {
-                if(c<'0'|| c>'9') return BadRequest("Broj licne karte se sastoji samo od cifara!");
-            }
-
-            var gost=Context.Gosti.Where(g => g.BrojLicneKarte==blk).FirstOrDefault();
+            var gost=Context.Gosti.Where(g => g.GostID==gostID).FirstOrDefault();
             if(gost==null) return Ok("Gost ne postoji!");
 
             if(gost.Soba!=null && gost.Soba.Count!=0)
@@ -205,6 +185,8 @@ namespace Projekat.Controllers
             }
 
             var gost=Context.Gosti.Where(g => g.BrojLicneKarte==blk).Include(g => g.Hotel).Include(g => g.Soba).FirstOrDefault();
+            
+            if(gost==null) return BadRequest("Gost nepostojeci!");
             return Ok(gost);
         }
 

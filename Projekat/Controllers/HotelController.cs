@@ -72,7 +72,7 @@ namespace Projekat.Controllers
                return Ok(await Context.Hoteli.Select(p => 
                new {ID=p.HotelID, Naziv=p.Naziv, Lokacija=p.Lokacija, 
                BrojSpratova=p.BrojSpratova, BrojSobaPoSpratu=p.BrojSobaPoSpratu,
-               Cena_I_kat=p.Cena_I_kat,Cena_II_kat=p.Cena_II_kat,Cena_III_kat=p.Cena_III_kat}).ToListAsync());
+               Cena_I_kat=p.Cena_I_kat,Cena_II_kat=p.Cena_II_kat,Cena_III_kat=p.Cena_III_kat, Recepcioneri=p.Recepcioneri, Sobe=p.Sobe}).ToListAsync());
            }
            catch(Exception e)
            {
@@ -80,23 +80,23 @@ namespace Projekat.Controllers
            }
        }
 
-       [Route("MenjanjeImenaHotela/{staroIme}/{novoIme}")]
+       [Route("MenjanjeImenaHotela/{hotelID}/{novoIme}")]
        [HttpPut]
-       public async Task<ActionResult> PromeniIme(string staroIme,string novoIme)
+       public async Task<ActionResult> PromeniIme(int hotelID,string novoIme)
        {
            if(novoIme=="") return BadRequest("Morate uneti novo ime hotela");
            if(novoIme.Length>70) return BadRequest("Predugacko novo ime hotela");
            if(Context.Hoteli.Where(p => p.Naziv==novoIme).FirstOrDefault()!=null) return BadRequest("Hotel s ovim imenom vec postoji!");
            try
            {
-               var hotel=Context.Hoteli.Where(p => p.Naziv==staroIme).FirstOrDefault();
+               var hotel=Context.Hoteli.Where(p => p.HotelID==hotelID).FirstOrDefault();
                if(hotel!=null) hotel.Naziv=novoIme;
-               else return BadRequest("Ne postoji hotel " + staroIme);
+               else return BadRequest("Ne postoji trazeni hotel!");
 
                Context.Hoteli.Update(hotel);
                await Context.SaveChangesAsync();
                
-               return Ok($"Uspesho promenjeno ime hotela {staroIme}-novo ime je {novoIme}");
+               return Ok($"Uspesho promenjeno ime hotela-novo ime je {novoIme}");
            }
            catch(Exception e)
            {
@@ -104,23 +104,23 @@ namespace Projekat.Controllers
            }
        }
 
-       [Route("MenjanjeLokacije/{imeHotela}/{novaLokacija}")]
+       [Route("MenjanjeLokacije/{hotelID}/{novaLokacija}")]
        [HttpPut]
-       public async Task<ActionResult> PromeniLokaciju(string imeHotela,string novaLokacija)
+       public async Task<ActionResult> PromeniLokaciju(int hotelID,string novaLokacija)
        {
            if(novaLokacija=="") return BadRequest("Morate uneti novu lokaciju hotela");
            if(novaLokacija.Length>200) return BadRequest("Predugacka nova lokacija hotela");
 
            try
            {
-               var hotel=Context.Hoteli.Where(p => p.Naziv==imeHotela).FirstOrDefault();
+               var hotel=Context.Hoteli.Where(p => p.HotelID==hotelID).FirstOrDefault();
                if(hotel!=null) hotel.Lokacija=novaLokacija;
-               else return BadRequest("Ne postoji hotel " + imeHotela);
+               else return BadRequest("Ne postoji trazeni hotel!");
 
                Context.Hoteli.Update(hotel);
                await Context.SaveChangesAsync();
                
-               return Ok($"Uspesho promenjena lokacija hotela {hotel.Naziv}-nova lokacija je {novaLokacija}");
+               return Ok($"Uspesho promenjena lokacija hotela-nova lokacija je {novaLokacija}");
            }
            catch(Exception e)
            {
@@ -128,21 +128,21 @@ namespace Projekat.Controllers
            }
        }
 
-       [Route("IzmenaBrojaSpratova/{imeHotela}/{br}")]
+       [Route("IzmenaBrojaSpratova/{hotelID}/{br}")]
        [HttpPut]
-       public async Task<ActionResult> IzmeniBrojSpratova(string imeHotela, int br)
+       public async Task<ActionResult> IzmeniBrojSpratova(int hotelID, int br)
        {
            if(br<0||br>40) return BadRequest("Neodgovarajuci broj spratova!");
 
            try
            {
-               var hotel=Context.Hoteli.Where(p=>p.Naziv==imeHotela).FirstOrDefault();
+               var hotel=Context.Hoteli.Where(p=>p.HotelID==hotelID).FirstOrDefault();
                if(hotel!=null) hotel.BrojSpratova=br;
 
                Context.Hoteli.Update(hotel);
                await Context.SaveChangesAsync();
 
-               return Ok("Izmenjeni podaci o hotelu "+ imeHotela);
+               return Ok("Izmenjeni podaci o hotelu "+ hotel.Naziv);
            }
            catch(Exception e)
            {
@@ -150,21 +150,21 @@ namespace Projekat.Controllers
            }
        }
 
-       [Route("IzmenaBrojaSoba/{imeHotela}/{br}")]
+       [Route("IzmenaBrojaSoba/{hotelID}/{br}")]
        [HttpPut]
-       public async Task<ActionResult> IzmeniBrojSoba(string imeHotela, int br)
+       public async Task<ActionResult> IzmeniBrojSoba(int hotelID, int br)
        {
            if(br<0||br>20) return BadRequest("Neodgovarajuci broj soba po spratu!");
 
            try
            {
-               var hotel=Context.Hoteli.Where(p=>p.Naziv==imeHotela).FirstOrDefault();
+               var hotel=Context.Hoteli.Where(p=>p.HotelID==hotelID).FirstOrDefault();
                if(hotel!=null) hotel.BrojSobaPoSpratu=br;
 
                Context.Hoteli.Update(hotel);
                await Context.SaveChangesAsync();
 
-               return Ok("Izmenjeni podaci o hotelu "+ imeHotela);
+               return Ok("Izmenjeni podaci o hotelu "+ hotel.Naziv);
            }
            catch(Exception e)
            {
@@ -172,14 +172,14 @@ namespace Projekat.Controllers
            }
        }
 
-       [Route("IzmenaCeneI/{imeHotela}/{cI}")]
+       [Route("IzmenaCeneI/{hotelID}/{cI}")]
        [HttpPut]
-       public async Task<ActionResult> IzmeniCenuI(string imeHotela, int cI)
+       public async Task<ActionResult> IzmeniCenuI(int hotelID, int cI)
        {
 
            try
            {
-               var hotel=Context.Hoteli.Where(p=>p.Naziv==imeHotela).FirstOrDefault();
+               var hotel=Context.Hoteli.Where(p=>p.HotelID==hotelID).FirstOrDefault();
                if(hotel!=null) 
                {
                    if (cI<hotel.Cena_II_kat || cI<hotel.Cena_III_kat) return BadRequest("Neodgovarajuca cena sobe I kategorije");
@@ -189,7 +189,7 @@ namespace Projekat.Controllers
                Context.Hoteli.Update(hotel);
                await Context.SaveChangesAsync();
 
-               return Ok("Izmenjeni podaci o hotelu "+ imeHotela);
+               return Ok("Izmenjeni podaci o hotelu "+ hotel.Naziv);
            }
            catch(Exception e)
            {
@@ -197,14 +197,14 @@ namespace Projekat.Controllers
            }
        }
 
-       [Route("IzmenaCeneII/{imeHotela}/{cII}")]
+       [Route("IzmenaCeneII/{hotelID}/{cII}")]
        [HttpPut]
-       public async Task<ActionResult> IzmeniCenuII(string imeHotela, int cII)
+       public async Task<ActionResult> IzmeniCenuII(int hotelID, int cII)
        {
 
            try
            {
-               var hotel=Context.Hoteli.Where(p=>p.Naziv==imeHotela).FirstOrDefault();
+               var hotel=Context.Hoteli.Where(p=>p.HotelID==hotelID).FirstOrDefault();
                if(hotel!=null) 
                {
                    if (cII<hotel.Cena_III_kat || cII>hotel.Cena_I_kat) return BadRequest("Neodgovarajuca cena sobe II kategorije");
@@ -214,7 +214,7 @@ namespace Projekat.Controllers
                Context.Hoteli.Update(hotel);
                await Context.SaveChangesAsync();
 
-               return Ok("Izmenjeni podaci o hotelu "+ imeHotela);
+               return Ok("Izmenjeni podaci o hotelu "+ hotel.Naziv);
            }
            catch(Exception e)
            {
@@ -222,14 +222,14 @@ namespace Projekat.Controllers
            }
        }
 
-       [Route("IzmenaCeneIII/{imeHotela}/{cIII}")]
+       [Route("IzmenaCeneIII/{hotelID}/{cIII}")]
        [HttpPut]
-       public async Task<ActionResult> IzmeniCenuIII(string imeHotela, int cIII)
+       public async Task<ActionResult> IzmeniCenuIII(int hotelID, int cIII)
        {
 
            try
            {
-               var hotel=Context.Hoteli.Where(p=>p.Naziv==imeHotela).FirstOrDefault();
+               var hotel=Context.Hoteli.Where(p=>p.HotelID==hotelID).FirstOrDefault();
                if(hotel!=null) 
                {
                    if (cIII>hotel.Cena_II_kat || cIII>hotel.Cena_I_kat) return BadRequest("Neodgovarajuca cena sobe III kategorije");
@@ -239,7 +239,7 @@ namespace Projekat.Controllers
                Context.Hoteli.Update(hotel);
                await Context.SaveChangesAsync();
 
-               return Ok("Izmenjeni podaci o hotelu "+ imeHotela);
+               return Ok("Izmenjeni podaci o hotelu "+ hotel.Naziv);
            }
            catch(Exception e)
            {
@@ -249,13 +249,13 @@ namespace Projekat.Controllers
 
        //OVO PROVERI KAD BUDES NAPISALA SVE KONTROLERE
 
-       [Route("DnevnaZaradaHotela/{imeHotela}")]
+       [Route("DnevnaZaradaHotela/{hotelID}")]
        [HttpGet]
-       public ActionResult DnevnaZaradaHotela(string imeHotela)
+       public ActionResult DnevnaZaradaHotela(int hotelID)
        {
            try
            {
-               var hotel=Context.Hoteli.Where(p => p.Naziv==imeHotela).FirstOrDefault();
+               var hotel=Context.Hoteli.Where(p => p.HotelID==hotelID).FirstOrDefault();
                
                if(hotel!=null)
                {
@@ -284,7 +284,7 @@ namespace Projekat.Controllers
 
                    return Ok(zarada);  
                }
-               else return BadRequest("Ne postoji hotel "+imeHotela);
+               else return BadRequest("Ne postoji trazeni hotel!");
            }
            catch(Exception e)
            {

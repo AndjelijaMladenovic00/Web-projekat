@@ -16,54 +16,6 @@ export class Hotel{
         this.Sobe=[];
         this.Recepcioneri=[];
         this.kontejner=null;
-
-        fetch("https://localhost:5001/Soba/PreuzimanjeSoba/"+this.naziv)
-        .then(s=>{
-            s.json().then(sobe=>{
-                sobe.forEach(s=>{
-                    let soba=new Soba(s.sobaID, s.brojSobe, s.brojKreveta, s.kategorija, s.izdata);
-                    if(soba.izdata===true){
-                        fetch("https://localhost:5001/Gost/PreuzmiGosta/"+this.naziv+"/"+soba.broj)
-                        .then(g=>{
-                            g.json().then(gs=>{
-                                let gost=new Gost(gs.gostID, gs.ime, gs.prezime, gs.brojLicneKarte);
-                                soba.gost=gost;
-                            });
-                        });
-                    }
-
-                    this.Sobe.push(soba);
-                });
-
-                fetch("https://localhost:5001/Recepcioner/PreuzimanjeRecepcionera/"+this.naziv)
-                .then(r=>{
-                    r.json().then(recepcioneri=>{
-                        recepcioneri.forEach(recep => {
-                            let rec=new Recepcioner(recep.recepcionerID, recep.ime, recep.prezime, recep.iD_kartica);
-                            recep.izdateSobe.forEach(is=>{
-                                id=is.sobaID;
-                                this.Sobe.forEach(s=>{
-                                    if(s.id===id){
-                                        
-                                        rec.Sobe.push(s);
-                                    }
-                                });
-                            });
-                            this.Recepcioneri.push(rec); 
-                        });
-
-                        this.prikaziHotel(document.body);
-                        
-                     });
-                     
-                     
-                });
-
-            });
-
-        });
-
-        
     }
 
     prikaziHotel(host){
@@ -84,7 +36,7 @@ export class Hotel{
         let zaradaLabela=document.createElement("label");
         let zarada;
 
-        fetch("https://localhost:5001/Hotel/DnevnaZaradaHotela/"+this.naziv)
+        fetch("https://localhost:5001/Hotel/DnevnaZaradaHotela/"+this.id)
         .then(z=>{
             z.json().then(zh=>{
                 zarada=zh;
@@ -135,9 +87,6 @@ export class Hotel{
         recOkBtn.onclick=(ev)=>this.prikaziPodatke(podaciKontejner);
         recepcionerDiv.appendChild(recOkBtn);
 
-
-        this.prikaziPodatke(podaciKontejner);
-
         let unosKontejner=document.createElement("div");
         unosKontejner.className="unosKontejner";
         host.appendChild(unosKontejner);
@@ -157,8 +106,9 @@ export class Hotel{
             if(r.id==recID){
                 recepcioner=r;
             }
-        });
+        }); 
 
+        console.log(recepcioner);
 
         let naslovDiv=document.createElement("div");
         naslovDiv.className="naslovLabela";
@@ -223,25 +173,47 @@ export class Hotel{
         sobeDiv.className="pomocniKontejner";
         host.appendChild(sobeDiv);
 
-        if(recepcioner.Sobe.length!=0) {
+        recepcioner.Sobe=[];
 
-            let listaSoba=document.createElement("ul");
-            listaSoba.className="lista";
+        fetch("https://localhost:5001/Soba/PreuzimanjeSobaZaRecepcionera/"+recepcioner.id)
+        .then(s=>{
+            s.json().then(sobe=>{
+                console.log(sobe);
+                sobe.forEach(s=>{
+                    let soba;
+                    this.Sobe.forEach(sb=>{
+                        if (sb.id===s.sobaID){
+                            let gost=new Gost(s.gost.gostID, s.gost.ime, s.gost.prezime, s.gost.brojLicneKarte);
+                            sb.gost=gost;
+                            recepcioner.Sobe.push(sb);
+                        }
+                    });
 
-            recepcioner.Sobe.forEach(s=> {
-                let listEl=document.createElement("li");
-                listEl.innerHTML=s.broj+"\t"+s.gost.ime.toString()+" "+s.gost.prezime.toString();
-                listaSoba.appendChild(listEl);
+                    if(recepcioner.Sobe.length!=0) {
+
+                        let listaSoba=document.createElement("ul");
+                        listaSoba.className="lista";
+            
+                        recepcioner.Sobe.forEach(s=> {
+                            let listEl=document.createElement("li");
+                            listEl.innerHTML=s.broj+"\t"+s.gost.ime.toString()+" "+s.gost.prezime.toString();
+                            listaSoba.appendChild(listEl);
+                            });
+            
+                        sobeDiv.innerHTML="";
+                        sobeDiv.appendChild(listaSoba);
+                    }
+                    else{
+            
+                        let praznoLabel=document.createElement("label");
+                        praznoLabel.innerHTML="Nema izdatih soba";
+                        sobeDiv.appendChild(praznoLabel);
+                    }
                 });
+            });
+        });
 
-            sobeDiv.appendChild(listaSoba);
-        }
-        else{
-
-            let praznoLabel=document.createElement("label");
-            praznoLabel.innerHTML="Nema izdatih soba";
-            sobeDiv.appendChild(praznoLabel);
-        }
+        
 
         let dugmadDiv=document.createElement("div");
         dugmadDiv.className="dugmad";
@@ -331,7 +303,8 @@ export class Hotel{
         let idKartica=idKarticaTbx.value;
         let zaIzmenu;
 
-        if(ime==="" && prezime==="" && idKartica=="") return;
+        if(ime==="" && prezime==="" && idKartica=="") return; //ako se slucajno pritisne dugme npr
+
 
         this.Recepcioneri.forEach(r=>{
             if (r.id===recepcioner.id)
@@ -339,98 +312,59 @@ export class Hotel{
         });
 
         if(idKartica==""||idKartica==null||idKartica==undefined) idKartica=recepcioner.idKartica;//za slucaj da se ne menja id kartica
+        if(ime==""||ime==null||ime==undefined) ime=recepcioner.ime;
+        if(prezime==""||prezime==null||prezime==undefined) prezime=recepcioner.prezime;
 
         if(idKartica.length!=5 || parseInt(idKartica)===NaN) {
             alert("Broj ID kartice treba da se sastoji od tacno 5 cifara!");
             return;
         }
 
-        if(ime!=null && ime!=undefined && ime!=""){
-            fetch("https://localhost:5001/Recepcioner/IzmenaImenaRecepcionera/"+idKartica+"/"+ime+"/"+this.naziv,
-            {
-                method:"PUT"
-            }).then(s=>{
-                if(s.ok){
-                    alert("Podaci o recepcioneru su izmenjeni!");
-                    zaIzmenu.ime=ime;
-                    this.updatePrikazaPodataka(host.parentNode.parentNode);
-                }
-                else{
-                    alert("Doslo je do greske!");
-                }
-               
-            });
-            
-        }
+        if(ime.length>50) alert("Ime predugacko!");
+        if(prezime.length>50) alert("Prezime predugacko!");
 
-        if(prezime!=null && prezime!=undefined && prezime!=""){
-            fetch("https://localhost:5001/Recepcioner/IzmenaPrezimenaRecepcionera/"+idKartica+"/"+prezime+"/"+this.naziv,
-            {
-                method:"PUT"
-            }).then(s=>{
-                if(s.ok){
-                    alert("Podaci o recepcioneru su izmenjeni!");
-                    zaIzmenu.prezime=prezime;
-                    this.updatePrikazaPodataka(host.parentNode.parentNode);
-                }
-                else{
-                    alert("Doslo je do greske!");
-                }
-            })
-            
-        }
-
-        if(idKarticaTbx.value.length===5 && parseInt(idKarticaTbx.value)!=NaN)
+        fetch("https://localhost:5001/Recepcioner/IzmenaPodataka/"+recepcioner.id+"/"+idKartica+"/"+ime+"/"+prezime,
         {
-            fetch("https://localhost:5001/Recepcioner/IzmenaBrojaIDKartice/"+recepcioner.idKartica+"/"+idKartica+"/"+this.naziv,
-            {
-                method:"PUT"
-            }).then(s=>{
-                if(s.ok){
-                    alert("Podaci o recepcioneru su izmenjeni!");
-                    zaIzmenu.idKartica=idKartica;
-                    this.updatePrikazaPodataka(host.parentNode.parentNode);
-                }
-                else{
-                    alert("Doslo je do greske!");
-                }
-            })
-           
-        }
+            method:"POST"
+        }).then(s=>{
+            if(s.ok){
+                s.json().then(rec=>{
+                    let prepravljeni=new Recepcioner(rec.recepcionerID, rec.ime, rec.prezime, rec.iD_kartica);
+
+                    this.Recepcioneri.forEach(r=>{
+                        if(r.id===prepravljeni.id){
+                            r=prepravljeni;
+                        };
+                    });
+
+                    this.updatePrikazaPodataka();
+                });
+            }
+            else{
+                alert("Doslo je do greske!")
+            }
+        });
+        
         
     }
 
     otpustiRecepcionera(recepcioner){
 
 
-        fetch("https://localhost:5001/Recepcioner/UklanjanjeRecepcionera/"+this.naziv+"/"+recepcioner.idKartica,
+        fetch("https://localhost:5001/Recepcioner/UklanjanjeRecepcionera/"+recepcioner.id,
         {
            method:"DELETE"
         }).then(r=>{
            if(r.ok){//opet ucitavam recepcionere jer je kontroler namesten da random recepcioneru prebaci sobe
-            this.Recepcioneri=[];
-
-            fetch("https://localhost:5001/Recepcioner/PreuzimanjeRecepcionera/"+this.naziv)
-            .then(r=>{
-                r.json().then(recepcioneri=>{
-                    recepcioneri.forEach(recep => {
-                        let rec=new Recepcioner(recep.recepcionerID, recep.ime, recep.prezime, recep.iD_kartica);
-                        recep.izdateSobe.forEach(is=>{
-                            id=is.sobaID;
-                            this.Sobe.forEach(s=>{
-                                if(s.id===id){
-                                    
-                                    rec.Sobe.push(s);
-                                }
-                            });
-                        });
-                        this.Recepcioneri.push(rec); 
-                    });
-                    alert("Recepcionar otpusten!")
-                    this.updatePrikazaPodataka();
-                 });
-               });
-           }
+            
+                this.Recepcioneri.forEach((r,index)=>{
+                    if (r.id===recepcioner.id){
+                    this.Recepcioneri.splice(index, 1);
+                    };
+                });
+                alert("Recepcioner je obrisan!");
+                this.updatePrikazaPodataka();
+            }
            else{
                alert("Doslo je do greske prilikom brisanja!");
            }
@@ -453,7 +387,7 @@ export class Hotel{
             return;
         }
 
-        fetch("https://localhost:5001/Recepcioner/UnosRecepcionera/"+ime+"/"+prezime+"/"+idKartica+"/"+this.naziv,
+        fetch("https://localhost:5001/Recepcioner/UnosRecepcionera/"+ime+"/"+prezime+"/"+idKartica+"/"+this.id,
         {
             method:"POST"
         })
@@ -466,7 +400,7 @@ export class Hotel{
 
                     this.updatePrikazaPodataka();
                 });
-            }
+            };
         });
 
     }

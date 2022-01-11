@@ -21,14 +21,14 @@ namespace Projekat.Controllers
         }
 
 
-        [Route("UnosSobe/{hotel}/{broj}/{br_kreveta}/{kategorija}")]
+        [Route("UnosSobe/{hotelID}/{broj}/{br_kreveta}/{kategorija}")]
         [HttpPost]
-        public async Task<ActionResult> UnesiSobu(string hotel, int broj, int br_kreveta, int kategorija)
+        public async Task<ActionResult> UnesiSobu(int hotelID, int broj, int br_kreveta, int kategorija)
         {
-            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).FirstOrDefault();
+            var Hotel=Context.Hoteli.Where(h => h.HotelID==hotelID).FirstOrDefault();
             if(Hotel==null) return BadRequest("Nepostojeci hotel!");
 
-            var postojeca=Context.Sobe.Where(s => s.Hotel.Naziv == hotel && s.BrojSobe == broj ).FirstOrDefault();
+            var postojeca=Context.Sobe.Where(s => s.Hotel.HotelID == hotelID && s.BrojSobe == broj ).FirstOrDefault();
             if(postojeca!=null) return BadRequest("U ovom hotelu vec postoji soba s brojem "+broj+".");
 
             if(broj<0 || Hotel.BrojSpratova*Hotel.BrojSobaPoSpratu<broj) return BadRequest("Broj sobe neodgovarajuci!");
@@ -57,20 +57,31 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("PreuzimanjeSoba/{hotel}")]
+        [Route("PreuzimanjeSoba/{hotelID}")]
         [HttpGet]
-        public async Task<ActionResult> PreuzmiSobe(string hotel)
+        public async Task<ActionResult> PreuzmiSobe(int hotelID)
         {
-            var hot=Context.Hoteli.Where(h=> h.Naziv==hotel).FirstOrDefault();
+            var hot=Context.Hoteli.Where(h=> h.HotelID==hotelID).FirstOrDefault();
             if(hot==null) return BadRequest("Nepostojeci hotel!");
 
-            var sobe=await Context.Sobe.Where(s=>s.Hotel.Naziv==hotel).Include(s=>s.Recepcioner).ToListAsync();
+            var sobe=await Context.Sobe.Where(s=>s.Hotel.HotelID==hotelID).Include(s=>s.Recepcioner).Include(s=>s.Gost).ToListAsync();
 
             if(sobe.Count==0) return BadRequest("Nema soba!");
 
             try
             {
-                return Ok(sobe);
+                return Ok(
+                    sobe.Select(s=>
+                    new
+                    {
+                        SobaID=s.SobaID,
+                        Broj=s.BrojSobe,
+                        BrojKreveta=s.BrojKreveta,
+                        Kategorija=s.Kategorija,
+                        Izdata=s.Izdata,
+                        Gost=s.Gost
+                    }).ToList()
+                );
             }
             catch(Exception e)
             {
@@ -79,13 +90,40 @@ namespace Projekat.Controllers
 
         }
 
-        [Route("UklanjanjeSobe/{hotel}/{broj}")]
-        [HttpDelete]
-        public async Task<ActionResult> BrisanjeSobe(string hotel, int broj)
+        [Route("PreuzimanjeSobaZaRecepcionera/{recepcionerID}")]
+        [HttpGet]
+        public async Task<ActionResult> PreuzmiSobeZaRecepcionera(int recepcionerID)
         {
-            if(hotel.Length>70 || broj<0) return BadRequest("Neodgovarajuci podaci o sobi!") ;
+            var sobe=await Context.Sobe.Where(s=>s.Recepcioner!=null && s.Recepcioner.RecepcionerID==recepcionerID).Include(s=>s.Gost).ToListAsync();
 
-            var soba=Context.Sobe.Where(s => s.Hotel.Naziv==hotel && s.BrojSobe==broj).FirstOrDefault();
+            try
+            {
+                return Ok(
+                    sobe.Select(s=>
+                    new
+                    {
+                        SobaID=s.SobaID,
+                        Broj=s.BrojSobe,
+                        BrojKreveta=s.BrojKreveta,
+                        Kategorija=s.Kategorija,
+                        Izdata=s.Izdata,
+                        Gost=s.Gost
+                    }).ToList()
+                );
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+        }
+
+        [Route("UklanjanjeSobe/{sobaID}")]
+        [HttpDelete]
+        public async Task<ActionResult> BrisanjeSobe(int sobaID)
+        {
+
+            var soba=Context.Sobe.Where(s => s.SobaID==sobaID).FirstOrDefault();
             if(soba==null) return Ok("Soba nije ni postojala!");
 
             else try
@@ -100,27 +138,14 @@ namespace Projekat.Controllers
             }       
         }
 
-        [Route("PromenaBrojaKreveta/{hotel}/{brSobe}/{nbk}")]
+        [Route("PromenaBrojaKreveta/{sobaID}/{nbk}")]
         [HttpPut]
-        public async Task<ActionResult> PromeniBrojKreveta(string hotel, int brSobe, int nbk)
+        public async Task<ActionResult> PromeniBrojKreveta(int sobaID, int nbk)
         {
-            if(hotel.Length==0 || hotel.Length>70) return BadRequest("Neodgovarajuce ime hotela!");
 
             if(nbk<1||nbk>4) return BadRequest("Neodgovarajuci broj kreveta!");
 
-            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).Include(h => h.Sobe).FirstOrDefault();
-            if(Hotel==null) return BadRequest("Nepostojeci hotel!");
-
-            Soba soba=null;
-
-            foreach(Soba s in Hotel.Sobe)
-            {
-                if(s.BrojSobe==brSobe)
-                {
-                    soba=s;
-                    break;
-                }
-            }
+            var soba=Context.Sobe.Where(s=>s.SobaID==sobaID).FirstOrDefault();
             if(soba==null) return BadRequest("Nepostojeca soba!");
 
             soba.BrojKreveta=nbk;
@@ -137,27 +162,14 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("PromenaKategorije/{hotel}/{brSobe}/{nk}")]
+        [Route("PromenaKategorije/{sobaID}/{nk}")]
         [HttpPut]
-        public async Task<ActionResult> PromeniKategoriju(string hotel, int brSobe, int nk)
+        public async Task<ActionResult> PromeniKategoriju(int sobaID, int nk)
         {
-            if(hotel.Length==0 || hotel.Length>70) return BadRequest("Neodgovarajuce ime hotela!");
 
             if(nk<1||nk>3) return BadRequest("Nepostojeca kategorija!");
 
-            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).Include(h => h.Sobe).FirstOrDefault();
-            if(Hotel==null) return BadRequest("Nepostojeci hotel!");
-
-            Soba soba=null;
-
-            foreach(Soba s in Hotel.Sobe)//ovo ujedno proverava i da li je ok broj sobe
-            {
-                if(s.BrojSobe==brSobe)
-                {
-                    soba=s;
-                    break;
-                }
-            }
+            var soba=Context.Sobe.Where(s=>s.SobaID==sobaID).FirstOrDefault();
             if(soba==null) return BadRequest("Nepostojeca soba!");
 
             soba.Kategorija=nk;

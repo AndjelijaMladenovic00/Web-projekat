@@ -22,15 +22,13 @@ namespace Projekat.Controllers
             Context = context;
         }
 
-        [Route("UnosRecepcionera/{ime}/{prezime}/{id}/{hotel}")]
+        [Route("UnosRecepcionera/{ime}/{prezime}/{id}/{hotelID}")]
         [HttpPost]
-        public async Task<ActionResult> DodajRecepcionera(string ime, string prezime, string id, string hotel)
+        public async Task<ActionResult> DodajRecepcionera(string ime, string prezime, string id, int hotelID)
         {
             if(ime.Length==0 || ime.Length>50) return BadRequest("Neodgovarajuce ime!");
 
             if(prezime.Length==0 || prezime.Length>50) return BadRequest("Neodgovarajuce prezime!");
-            
-            if(hotel.Length==0 || hotel.Length>70) return BadRequest("Neodgovarajuce ime hotela!");
 
             if(id.Length!=5) return BadRequest("Neodgovarajuci ID!");
             foreach(char c in id.ToCharArray())
@@ -38,7 +36,7 @@ namespace Projekat.Controllers
                 if(c<'0'||c>'9') return BadRequest("Broj ID kartice treba da se sastoji samo iz cifara!");
             }
 
-            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).Include(h => h.Recepcioneri).FirstOrDefault();
+            var Hotel=Context.Hoteli.Where(h => h.HotelID==hotelID).Include(h => h.Recepcioneri).FirstOrDefault();
             if(Hotel==null) return BadRequest("Nepostojeci hotel!");
 
             foreach(Recepcioner r in Hotel.Recepcioneri) //1 recepcioner po hotelu sa datim id-em
@@ -65,42 +63,22 @@ namespace Projekat.Controllers
 
         }
 
-        [Route("UklanjanjeRecepcionera/{hotel}/{id}")]//id kartica, ne id u bazi
+        [Route("UklanjanjeRecepcionera/{id}")]
         [HttpDelete]
-        public async Task<ActionResult>UkloniRecepcionera(string hotel, string id)
+        public async Task<ActionResult>UkloniRecepcionera(int id)
         {
-            if(hotel.Length==0||hotel.Length>70) return BadRequest("Neodgovarajuce ime hotela!");
+            Recepcioner rec=Context.Recepcioneri.Where(r=>r.RecepcionerID==id).FirstOrDefault();
 
-            if(id.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
-            foreach(char c in id.ToCharArray())
-            {
-                if(c<'0'||c>'9') return BadRequest("ID treba da se sastoji samo iz brojeva!");
-            }
-
-            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).Include(h => h.Recepcioneri).ThenInclude(r => r.IzdateSobe).FirstOrDefault();
-            if(Hotel==null) return BadRequest("Nepostojeci hotel!");
-
-            Recepcioner rec=null;
-
-            if(Hotel.Recepcioneri.Count==1) return BadRequest("Hotel mora imati bar jednog recepcionera!");
-
-            foreach(Recepcioner r in Hotel.Recepcioneri)
-            {
-                if(r.ID_kartica==id)
-                {
-                    rec=r;
-                    break;
-                }
-                
-            }
             if(rec==null) return Ok("Recepcioner nije ni bio u bazi!");
+
+            Hotel h=Context.Hoteli.Where(h=>h.HotelID==rec.Hotel.HotelID).FirstOrDefault();
 
             if(rec.IzdateSobe.Count!=0)
             {
                 Recepcioner zamena=null;
-                foreach(Recepcioner r in Hotel.Recepcioneri)
+                foreach(Recepcioner r in h.Recepcioneri)
                 {
-                    if(r.ID_kartica!=id) zamena=r;
+                    if(r.RecepcionerID!=id) zamena=r;
                     if(zamena!=null) break;
                 }
 
@@ -123,15 +101,15 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("PreuzimanjeRecepcionera/{hotel}")]
+        [Route("PreuzimanjeRecepcionera/{hotelID}")]
         [HttpGet]
-        public async Task<ActionResult> PreuzmiRecepcionere(string hotel)
+        public async Task<ActionResult> PreuzmiRecepcionere(int hotelID)
         {
-            var hot=Context.Hoteli.Where(h=>h.Naziv==hotel).FirstOrDefault();
+            var hot=Context.Hoteli.Where(h=>h.HotelID==hotelID).FirstOrDefault();
 
             if(hot==null) return BadRequest("Nepostojeci hotel!");
 
-            var recepcioneri= await Context.Recepcioneri.Where(p=> p.Hotel.Naziv==hotel).Include(r=> r.IzdateSobe).ToListAsync();
+            var recepcioneri= await Context.Recepcioneri.Where(p=> p.Hotel.HotelID==hotelID).Include(r=> r.IzdateSobe).ToListAsync();
 
             try
             {
@@ -143,11 +121,10 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzdavanjeSobe/{hotel}/{id}/{brs}/{blk}")]
+        [Route("IzdavanjeSobe/{hotelID}/{id}/{brs}/{blk}")]
         [HttpPut]
-        public async Task<ActionResult> IzdajSobu(string hotel, string id, int brs, string blk)
+        public async Task<ActionResult> IzdajSobu(int hotelID, string id, int brs, string blk)
         {
-            if(hotel.Length==0||hotel.Length>70) return BadRequest("Neodgovarajuce ime hotela!");
 
             if(id.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
             foreach(char c in id.ToCharArray())
@@ -162,7 +139,7 @@ namespace Projekat.Controllers
                 if(c<'0'||c>'9') return BadRequest("Broj licne karte treba da se sastoji samo iz brojeva!");
             }
 
-            var Hotel=Context.Hoteli.Where(h => h.Naziv==hotel).Include(h => h.Sobe).Include(h => h.Recepcioneri).Include(h => h.Gosti).FirstOrDefault();
+            var Hotel=Context.Hoteli.Where(h => h.HotelID==hotelID).Include(h => h.Sobe).Include(h => h.Recepcioneri).Include(h => h.Gosti).FirstOrDefault();
             if(Hotel==null)return BadRequest("Nepostojeci hotel");
 
             Recepcioner rec=null;
@@ -217,27 +194,19 @@ namespace Projekat.Controllers
 
         }
 
-        [Route("IzmenaBrojaIDKartice/{stariBroj}/{noviBroj}/{hotel}")]
+        [Route("IzmenaBrojaIDKartice/{recID}/{noviBroj}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniBrojIDKartice(string stariBroj, string noviBroj, string hotel)
+        public async Task<ActionResult> IzmeniBrojIDKartice(int recID, string noviBroj)
         {
-            if(stariBroj.Length!=5 ||noviBroj.Length!=5) return BadRequest("Nevalidni brojevi ID kartica!");
-
-            foreach(char c in stariBroj.ToCharArray())
-            {
-               if(c>'9'||c<'0') return BadRequest("Broj ID karte moze da sadrzi samo cifre!");
-            }
-
+            if(noviBroj.Length!=5) return BadRequest("Nevalidni brojevi ID kartica!");
             
             foreach(char c in noviBroj.ToCharArray())
             {
                 if(c>'9'||c<'0') return BadRequest("Broj ID karte moze da sadrzi samo cifre!");
             }
 
-            if(hotel.Length>70) return BadRequest("Neogoverajuce ime hotela!");
-
-            var recepcioner=Context.Recepcioneri.Where(p => p.ID_kartica==stariBroj && p.Hotel.Naziv==hotel).FirstOrDefault();
-            if(recepcioner==null) return BadRequest("Ne postoji recepcioner sa brojem ID kartice "+stariBroj);
+            var recepcioner=Context.Recepcioneri.Where(p => p.RecepcionerID==recID).FirstOrDefault();
+            if(recepcioner==null) return BadRequest("Ne postoji trazeni recepcioner");
             recepcioner.ID_kartica=noviBroj;
 
             try
@@ -254,23 +223,15 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzmenaImenaRecepcionera/{idk}/{novoIme}/{hotel}")]
+        [Route("IzmenaImenaRecepcionera/{id}/{novoIme}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniImeRecepcionera(string idk, string novoIme, string hotel)
+        public async Task<ActionResult> IzmeniImeRecepcionera(int id, string novoIme)
         {
-            if(hotel.Length>70) return BadRequest("Neogoverajuce ime hotela!");
-
-            if(idk.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
-
-            foreach(char c in idk.ToCharArray())
-            {
-                if(c>'9'||c<'0') return BadRequest("Broj ID kartice moze da sadrzi samo cifre!");
-            }
 
             if(novoIme.Length>50) return BadRequest("Ime predugacko!");
 
-            var rec=Context.Recepcioneri.Where(g => g.ID_kartica==idk && g.Hotel.Naziv==hotel).FirstOrDefault();
-            if(rec==null) return BadRequest("Ne postoji recepcioner sa ID karticom "+idk);
+            var rec=Context.Recepcioneri.Where(g => g.RecepcionerID==id).FirstOrDefault();
+            if(rec==null) return BadRequest("Ne postoji trazeni recepcioner!");
 
             rec.Ime=novoIme;
 
@@ -288,23 +249,15 @@ namespace Projekat.Controllers
             }
         }
 
-        [Route("IzmenaPrezimenaRecepcionera/{idk}/{novoPrezime}/{hotel}")]
+        [Route("IzmenaPrezimenaRecepcionera/{id}/{novoPrezime}")]
         [HttpPut]
-        public async Task<ActionResult> IzmeniPrezimeRecepcionera(string idk, string novoPrezime, string hotel)
+        public async Task<ActionResult> IzmeniPrezimeRecepcionera(int id, string novoPrezime)
         {
-            if(hotel.Length>70) return BadRequest("Neogoverajuce ime hotela!");
-
-            if(idk.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
-
-            foreach(char c in idk.ToCharArray())
-            {
-                if(c>'9'||c<'0') return BadRequest("Broj ID kartice moze da sadrzi samo cifre!");
-            }
 
             if(novoPrezime.Length>50) return BadRequest("Ime predugacko!");
 
-            var rec=Context.Recepcioneri.Where(g => g.ID_kartica==idk && g.Hotel.Naziv==hotel).FirstOrDefault();
-            if(rec==null) return BadRequest("Ne postoji gost sa brojem licne karte "+rec);
+            var rec=Context.Recepcioneri.Where(g => g.RecepcionerID==id).FirstOrDefault();
+            if(rec==null) return BadRequest("Ne postoji trazeni recepcioner!");
 
             rec.Prezime=novoPrezime;
 
@@ -323,7 +276,40 @@ namespace Projekat.Controllers
 
         }
             
-       
+        [Route("IzmenaPodataka/{recID}/{noviBroj}/{novoIme}/{novoPrezime}")]
+        [HttpPut]
+        public async Task<ActionResult> IzmeniPodatkeRecepcioneru(int recID, string noviBroj, string novoIme, string novoPrezime)
+        {
+            if(noviBroj.Length!=5) return BadRequest("Nevalidni brojevi ID kartica!");
+            
+            foreach(char c in noviBroj.ToCharArray())
+            {
+                if(c>'9'||c<'0') return BadRequest("Broj ID karte moze da sadrzi samo cifre!");
+            }
+
+            if(novoIme.Length==0||novoIme.Length>50) return BadRequest("Neodgovarajuce ime!");
+            if(novoPrezime.Length==0||novoPrezime.Length>50) return BadRequest("Neodgovarajuce prezime!");
+
+            var recepcioner=Context.Recepcioneri.Where(p => p.RecepcionerID==recID).FirstOrDefault();
+            if(recepcioner==null) return BadRequest("Ne postoji trazeni recepcioner");
+
+            recepcioner.ID_kartica=noviBroj;
+            recepcioner.Ime=novoIme;
+            recepcioner.Prezime=novoPrezime;
+
+            try
+            {
+                Context.Recepcioneri.Update(recepcioner);
+                await Context.SaveChangesAsync();
+
+                return Ok(recepcioner);
+
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         
     }
 }
