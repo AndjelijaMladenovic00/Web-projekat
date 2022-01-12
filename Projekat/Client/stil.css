@@ -19,6 +19,7 @@
     display:flex;
     flex-direction:column;
     align-items:center;
+    align-self: center;
 
 }
 
@@ -65,5 +66,48 @@
 
 .unosKontejner
 {
+    border: 1px solid black;
+}
+
+.prikazKontejner
+{
+    display:flex;
+    flex-direction: column-reverse;
+    border: 1px solid black;
+}
+
+.spratKontejner
+{
+    display: flex;
+    flex-direction: column;
+}
+
+.sprat
+{
+    display: flex;
+    flex-direction: row;
+}
+
+.izdataSoba
+{
+    display: flex;
+    flex-direction: column;
+    height: 100px;
+    width: 200px;
+    background-color: forestgreen;
+    align-items: center;
+    text-align: center;
+    border: 1px solid black;
+}
+
+.praznaSoba
+{
+    display: flex;
+    flex-direction: column;
+    height: 100px;
+    width: 200px;
+    background-color: red;
+    align-items:center;
+    text-align: center;
     border: 1px solid black;
 }

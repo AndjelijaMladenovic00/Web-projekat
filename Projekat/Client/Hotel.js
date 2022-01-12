@@ -39,6 +39,7 @@ export class Hotel{
         fetch("https://localhost:5001/Hotel/DnevnaZaradaHotela/"+this.id)
         .then(z=>{
             z.json().then(zh=>{
+
                 zarada=zh;
                 zaradaLabela.innerHTML="Dnevna zarada: "+zarada;
             });
@@ -54,6 +55,11 @@ export class Hotel{
         meniKontejner.className="meniKontejner";
         ostaloKontejner.appendChild(meniKontejner);
         this.prikaziMeni(meniKontejner);
+
+        let prikazKontejner=document.createElement("div");
+        prikazKontejner.className="prikazKontejner";
+        ostaloKontejner.appendChild(prikazKontejner);
+        this.prikaziSobe(prikazKontejner);
 
     }
 
@@ -72,11 +78,12 @@ export class Hotel{
 
         let op;
         this.Recepcioneri.forEach(rec=>{
+
             op=document.createElement("option");
             op.innerHTML=rec.ime+" "+rec.prezime;
             op.value=rec.id;
             recepcionerSelect.appendChild(op);
-        })
+        });
 
         let podaciKontejner=document.createElement("div");
         podaciKontejner.className="podaciKontejner";
@@ -103,6 +110,7 @@ export class Hotel{
         let recepcioner;
 
         this.Recepcioneri.forEach(r=>{
+
             if(r.id==recID){
                 recepcioner=r;
             }
@@ -182,6 +190,7 @@ export class Hotel{
                 sobe.forEach(s=>{
                     let soba;
                     this.Sobe.forEach(sb=>{
+
                         if (sb.id===s.sobaID){
                             let gost=new Gost(s.gost.gostID, s.gost.ime, s.gost.prezime, s.gost.brojLicneKarte);
                             sb.gost=gost;
@@ -189,12 +198,20 @@ export class Hotel{
                         }
                     });
 
-                    if(recepcioner.Sobe.length!=0) {
+                    if(recepcioner.Sobe===[]) {
 
+                        let praznoLabel=document.createElement("label");
+                        praznoLabel.innerHTML="Nema izdatih soba";
+                        sobeDiv.appendChild(praznoLabel);
+                        
+                    }
+                    else {
+                        
                         let listaSoba=document.createElement("ul");
                         listaSoba.className="lista";
             
                         recepcioner.Sobe.forEach(s=> {
+
                             let listEl=document.createElement("li");
                             listEl.innerHTML=s.broj+"\t"+s.gost.ime.toString()+" "+s.gost.prezime.toString();
                             listaSoba.appendChild(listEl);
@@ -202,12 +219,6 @@ export class Hotel{
             
                         sobeDiv.innerHTML="";
                         sobeDiv.appendChild(listaSoba);
-                    }
-                    else{
-            
-                        let praznoLabel=document.createElement("label");
-                        praznoLabel.innerHTML="Nema izdatih soba";
-                        sobeDiv.appendChild(praznoLabel);
                     }
                 });
             });
@@ -307,6 +318,7 @@ export class Hotel{
 
 
         this.Recepcioneri.forEach(r=>{
+
             if (r.id===recepcioner.id)
                 zaIzmenu=r;
         });
@@ -332,6 +344,7 @@ export class Hotel{
                     let prepravljeni=new Recepcioner(rec.recepcionerID, rec.ime, rec.prezime, rec.iD_kartica);
 
                     this.Recepcioneri.forEach(r=>{
+
                         if(r.id===prepravljeni.id){
                             r=prepravljeni;
                         };
@@ -355,9 +368,10 @@ export class Hotel{
         {
            method:"DELETE"
         }).then(r=>{
-           if(r.ok){//opet ucitavam recepcionere jer je kontroler namesten da random recepcioneru prebaci sobe
-            
+           if(r.ok){
+                
                 this.Recepcioneri.forEach((r,index)=>{
+
                     if (r.id===recepcioner.id){
                     this.Recepcioneri.splice(index, 1);
                     };
@@ -387,21 +401,93 @@ export class Hotel{
             return;
         }
 
+        let duplikat; 
+        this.Recepcioneri.forEach(r=>{
+
+            if(r.idKartica==idKartica){
+
+                alert("Vec postoji recepcioner sa ovim brojem ID kartice!");
+                duplikat=true;
+                return;
+            }
+        });
+
+        if(duplikat===true) return;
+
         fetch("https://localhost:5001/Recepcioner/UnosRecepcionera/"+ime+"/"+prezime+"/"+idKartica+"/"+this.id,
         {
             method:"POST"
         })
         .then(r=>{
             if(r.ok){
+
                 r.json().then(rc=>{
+
                     let rec=new Recepcioner(rc.recepcionerID, rc.ime, rc.prezime, rc.iD_kartica);
                     this.Recepcioneri.push(rec);
                     alert("Recepcioner dodat!")
 
                     this.updatePrikazaPodataka();
                 });
-            };
+            }
+            else{
+                alert("Greska pri zaposljavanju recepcionera!")
+            }
         });
 
+    }
+
+    prikaziSobe(host){
+
+        let spratovi=[];
+
+        let i;
+        for(i=1;i<=this.brSpratova;i++){
+
+            let spratKontejner=document.createElement("div");
+            spratKontejner.className="spratKontejner";
+
+            let imeSprata=document.createElement("div");
+            imeSprata.innerHTML="Sprat br. "+i;
+            imeSprata.className="naslov";
+            spratKontejner.appendChild(imeSprata);
+
+            let sprat=document.createElement("div");
+            sprat.className="sprat";
+            spratovi.push(sprat);
+            spratKontejner.appendChild(sprat);
+
+            host.appendChild(spratKontejner);
+        }
+
+        this.Sobe.sort((a, b)=>a.broj-b.broj);
+
+        this.Sobe.forEach(s=>{
+
+            let brS=Math.ceil(s.broj/this.brSobaPoSpratu);
+
+            let soba=document.createElement("div");
+
+            if(s.izdata==true) {
+                soba.className="izdataSoba";
+            }
+            else{
+                soba.className="praznaSoba";
+            }
+
+            let br=document.createElement("label");
+            br.innerHTML="Br. sobe: "+s.broj;
+            soba.appendChild(br);
+
+            let brK=document.createElement("label");
+            brK.innerHTML="Br. kreveta: "+s.brKreveta;
+            soba.appendChild(brK);
+
+            let kat=document.createElement("label");
+            kat.innerHTML="Kategorija: "+s.kategorija;
+            soba.appendChild(kat);
+
+            spratovi[brS-1].appendChild(soba);
+        });
     }
 }
