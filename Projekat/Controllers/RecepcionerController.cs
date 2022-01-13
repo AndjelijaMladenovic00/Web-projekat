@@ -123,14 +123,9 @@ namespace Projekat.Controllers
 
         [Route("IzdavanjeSobe/{hotelID}/{id}/{brs}/{blk}")]
         [HttpPut]
-        public async Task<ActionResult> IzdajSobu(int hotelID, string id, int brs, string blk)
+        public async Task<ActionResult> IzdajSobu(int hotelID, int id, int brs, string blk)
         {
 
-            if(id.Length!=5) return BadRequest("Neodgovarajuci broj ID kartice!");
-            foreach(char c in id.ToCharArray())
-            {
-                if(c<'0'||c>'9') return BadRequest("ID treba da se sastoji samo iz brojeva!");
-            }
 
             if(blk.Length!=9) return BadRequest("Neodgovarajuci broj licne karte!");
 
@@ -146,7 +141,7 @@ namespace Projekat.Controllers
 
             foreach(Recepcioner r in Hotel.Recepcioneri)
             {
-                if(r.ID_kartica==id)
+                if(r.RecepcionerID==id)
                 {
                     rec=r;
                     break;
