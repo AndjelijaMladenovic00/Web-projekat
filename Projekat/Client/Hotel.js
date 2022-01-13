@@ -74,6 +74,7 @@ export class Hotel{
 
         let recepcionerSelect=document.createElement("select");
         recepcionerDiv.appendChild(recepcionerSelect);
+       //recepcionerSelect.onchange=(ev)=>this.prikaziPodatke(podaciKontejner);
 
         let op;
         this.Recepcioneri.forEach(rec=>{
@@ -132,7 +133,6 @@ export class Hotel{
         let imeTbx=document.createElement("input");
         imeTbx.setAttribute("type", "text");
         imeTbx.setAttribute("placeholder", recepcioner.ime);
-       // imeTbx.className="tbxPodataka";
         imeDiv.appendChild(imeTbx);
 
         let prezimeDiv=document.createElement("div");
@@ -147,7 +147,6 @@ export class Hotel{
         let prezimeTbx=document.createElement("input");
         prezimeTbx.setAttribute("type", "text");
         prezimeTbx.setAttribute("placeholder", recepcioner.prezime);
-      //  prezimeTbx.className="tbxPodataka";
         prezimeDiv.appendChild(prezimeTbx);
 
         
@@ -163,27 +162,17 @@ export class Hotel{
         let idKarticaTbx=document.createElement("input");
         idKarticaTbx.setAttribute("type", "text");
         idKarticaTbx.setAttribute("placeholder", recepcioner.idKartica);
-      //  idKarticaTbx.className="tbxPodataka";
         idKarticaDiv.appendChild(idKarticaTbx);
 
         let labelDiv=document.createElement("div");
         labelDiv.className="naslov";
         host.appendChild(labelDiv);
 
-        let sobeLabel=document.createElement("label");
-        sobeLabel.innerHTML="Izdate sobe";
-        labelDiv.appendChild(sobeLabel);
-
-        let sobeDiv=document.createElement("div");
-        sobeDiv.className="pomocniKontejner";
-        host.appendChild(sobeDiv);
-
         recepcioner.Sobe=[];
 
         fetch("https://localhost:5001/Soba/PreuzimanjeSobaZaRecepcionera/"+recepcioner.id)
         .then(s=>{
             s.json().then(sobe=>{
-                console.log(sobe);
                 sobe.forEach(s=>{
                  
                     this.Sobe.forEach(sb=>{
@@ -193,39 +182,16 @@ export class Hotel{
                             sb.gost=gost;
                             recepcioner.Sobe.push(sb);
                         }
-                    });
-
-
-                    if(recepcioner.Sobe.length>0) {//ne radi
-
-                        let listaSoba=document.createElement("ul");
-                        listaSoba.className="lista";
-            
-                        recepcioner.Sobe.forEach(s=> {
-
-                            let listEl=document.createElement("li");
-                            listEl.innerHTML=s.broj+"\t"+s.gost.ime.toString()+" "+s.gost.prezime.toString();
-                            listaSoba.appendChild(listEl);
-                            });
-            
-                        sobeDiv.innerHTML="";
-                        sobeDiv.appendChild(listaSoba);
-                    }
-                    else {
-                        
-                        let praznoLabel=document.createElement("label");
-                        praznoLabel.innerHTML="Nema izdatih soba";
-                        sobeDiv.appendChild(praznoLabel);
-                    }
-
+                    });  
                 });
-
+                console.log(this.Sobe);
+                console.log(recepcioner.Sobe);
                 let hotel=this.kontejner.querySelector(".prikazKontejner");
                 hotel.innerHTML="";
                 this.prikaziSobe(hotel, recepcioner);
             });
-        });
 
+        });
         
 
         let dugmadDiv=document.createElement("div");
@@ -447,6 +413,7 @@ export class Hotel{
         let spratovi=[];
 
         let i;
+
         for(i=1;i<=this.brSpratova;i++){
 
             let spratKontejner=document.createElement("div");
@@ -500,6 +467,10 @@ export class Hotel{
             let kat=document.createElement("label");
             kat.innerHTML="Kategorija: "+s.kategorija;
             soba.appendChild(kat);
+
+            let gost=document.createElement("label");
+            s.izdata===true?gost.innerHTML="Gost: "+s.gost.ime+" "+s.gost.prezime : gost.innerHTML="Prazna";
+            soba.appendChild(gost);
 
             spratovi[brS-1].appendChild(soba);
         });
