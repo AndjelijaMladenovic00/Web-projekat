@@ -59,14 +59,13 @@ export class Hotel{
         let prikazKontejner=document.createElement("div");
         prikazKontejner.className="prikazKontejner";
         ostaloKontejner.appendChild(prikazKontejner);
-        this.prikaziSobe(prikazKontejner);
-
     }
 
     prikaziMeni(host){
 
         host.innerHTML="";
         let recepcionerDiv=document.createElement("div");
+        recepcionerDiv.className="selectRec";
 
         let recepcionerLabela=document.createElement("label");
         recepcionerLabela.innerHTML="Recepcioner:";
@@ -115,8 +114,6 @@ export class Hotel{
                 recepcioner=r;
             }
         }); 
-
-        console.log(recepcioner);
 
         let naslovDiv=document.createElement("div");
         naslovDiv.className="naslovLabela";
@@ -188,7 +185,7 @@ export class Hotel{
             s.json().then(sobe=>{
                 console.log(sobe);
                 sobe.forEach(s=>{
-                    let soba;
+                 
                     this.Sobe.forEach(sb=>{
 
                         if (sb.id===s.sobaID){
@@ -198,15 +195,9 @@ export class Hotel{
                         }
                     });
 
-                    if(recepcioner.Sobe===[]) {
 
-                        let praznoLabel=document.createElement("label");
-                        praznoLabel.innerHTML="Nema izdatih soba";
-                        sobeDiv.appendChild(praznoLabel);
-                        
-                    }
-                    else {
-                        
+                    if(recepcioner.Sobe.length>0) {//ne radi
+
                         let listaSoba=document.createElement("ul");
                         listaSoba.className="lista";
             
@@ -220,7 +211,18 @@ export class Hotel{
                         sobeDiv.innerHTML="";
                         sobeDiv.appendChild(listaSoba);
                     }
+                    else {
+                        
+                        let praznoLabel=document.createElement("label");
+                        praznoLabel.innerHTML="Nema izdatih soba";
+                        sobeDiv.appendChild(praznoLabel);
+                    }
+
                 });
+
+                let hotel=this.kontejner.querySelector(".prikazKontejner");
+                hotel.innerHTML="";
+                this.prikaziSobe(hotel, recepcioner);
             });
         });
 
@@ -307,6 +309,7 @@ export class Hotel{
         this.prikaziMeni(meniKontejner);
     }
 
+
     izmeniPodatke(recepcioner, imeTbx, prezimeTbx, idKarticaTbx, host ){
 
         let ime=imeTbx.value;
@@ -337,20 +340,22 @@ export class Hotel{
 
         fetch("https://localhost:5001/Recepcioner/IzmenaPodataka/"+recepcioner.id+"/"+idKartica+"/"+ime+"/"+prezime,
         {
-            method:"POST"
+            method:"PUT"
         }).then(s=>{
             if(s.ok){
                 s.json().then(rec=>{
                     let prepravljeni=new Recepcioner(rec.recepcionerID, rec.ime, rec.prezime, rec.iD_kartica);
 
-                    this.Recepcioneri.forEach(r=>{
+                    this.Recepcioneri.forEach((r,index)=>{
 
                         if(r.id===prepravljeni.id){
-                            r=prepravljeni;
+                            
+                            this.Recepcioneri.splice(index, 1);
+                            this.Recepcioneri.push(prepravljeni);
                         };
                     });
-
                     this.updatePrikazaPodataka();
+                    alert("Podaci izmenjeni!");
                 });
             }
             else{
@@ -437,7 +442,7 @@ export class Hotel{
 
     }
 
-    prikaziSobe(host){
+    prikaziSobe(host, recepcioner){
 
         let spratovi=[];
 
@@ -468,8 +473,17 @@ export class Hotel{
 
             let soba=document.createElement("div");
 
-            if(s.izdata==true) {
-                soba.className="izdataSoba";
+            if(s.izdata==true ) {
+
+                if(recepcioner.Sobe.includes(s)){
+
+                    soba.className="izdataSoba";
+                }
+                else{
+                    
+                    soba.className="praznaSoba";
+                }
+                
             }
             else{
                 soba.className="praznaSoba";

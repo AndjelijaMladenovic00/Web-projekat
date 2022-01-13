@@ -1,17 +1,17 @@
 .kontejner
 {
-    display:flex;
-    flex-direction:column;
-    background-color: beige;
+    display: block;
     border: 1px solid black;
-    flex: 1 1 200px;
 }
 
 .meniKontejner
 {
-
+    display: flex;
+    flex-direction: column;
+    flex-basis: 280px;
     background-color: gray;
     border: 1px solid black;
+    justify-content: space-between;
 }
 
 .naslov
@@ -25,8 +25,8 @@
 
 .ostalo
 {
-    display:flex;
-    flex-direction: row;
+    display: flex;
+
 }
 
 .naslovLabela
@@ -49,7 +49,9 @@
 
 .labelePodataka
 {
-    align-self: flex-start;
+    display: inline-block;
+    width: 100px;
+    text-align: right;
 }
 
 .lista
@@ -74,40 +76,57 @@
     display:flex;
     flex-direction: column-reverse;
     border: 1px solid black;
+ 
+    flex-grow: 1;
 }
 
 .spratKontejner
 {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 }
 
 .sprat
 {
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
+
 }
 
 .izdataSoba
 {
     display: flex;
     flex-direction: column;
-    height: 100px;
-    width: 200px;
-    background-color: forestgreen;
+    flex-basis: 100px;
+    flex-grow: 1;
+    background-color: red;
     align-items: center;
     text-align: center;
+    justify-content: center;
     border: 1px solid black;
+    height: 100px;
 }
 
 .praznaSoba
 {
     display: flex;
     flex-direction: column;
-    height: 100px;
-    width: 200px;
-    background-color: red;
-    align-items:center;
+    flex-basis: 100px;
+    flex-grow: 1;
+    background-color: forestgreen;
+    align-items: center;
     text-align: center;
+    justify-content: center;
     border: 1px solid black;
+    height: 100px;
+}
+
+.selectRec
+{
+    margin-top: auto;
+    margin-right: auto;
+    margin-bottom: auto;
+    margin-left: 0;
 }

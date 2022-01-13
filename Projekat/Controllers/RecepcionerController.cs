@@ -67,7 +67,7 @@ namespace Projekat.Controllers
         [HttpDelete]
         public async Task<ActionResult>UkloniRecepcionera(int id)
         {
-            Recepcioner rec=Context.Recepcioneri.Where(r=>r.RecepcionerID==id).FirstOrDefault();
+            Recepcioner rec=Context.Recepcioneri.Where(r=>r.RecepcionerID==id).Include(r=>r.IzdateSobe).Include(r=>r.Hotel).FirstOrDefault();
 
             if(rec==null) return Ok("Recepcioner nije ni bio u bazi!");
 
