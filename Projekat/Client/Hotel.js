@@ -54,11 +54,12 @@ export class Hotel{
         let meniKontejner=document.createElement("div");
         meniKontejner.className="meniKontejner";
         ostaloKontejner.appendChild(meniKontejner);
-        this.prikaziMeni(meniKontejner);
 
         let prikazKontejner=document.createElement("div");
         prikazKontejner.className="prikazKontejner";
         ostaloKontejner.appendChild(prikazKontejner);
+
+        this.prikaziMeni(meniKontejner);
     }
 
     prikaziMeni(host){
@@ -74,7 +75,7 @@ export class Hotel{
 
         let recepcionerSelect=document.createElement("select");
         recepcionerDiv.appendChild(recepcionerSelect);
-       //recepcionerSelect.onchange=(ev)=>this.prikaziPodatke(podaciKontejner);
+        recepcionerSelect.onchange=(ev)=>this.prikaziPodatke(podaciKontejner);
 
         let op;
         this.Recepcioneri.forEach(rec=>{
@@ -89,16 +90,23 @@ export class Hotel{
         podaciKontejner.className="podaciKontejner";
         host.appendChild(podaciKontejner);
 
-        let recOkBtn=document.createElement("button");
-        recOkBtn.innerHTML="OK";
-        recOkBtn.onclick=(ev)=>this.prikaziPodatke(podaciKontejner);
-        recepcionerDiv.appendChild(recOkBtn);
-
         let unosKontejner=document.createElement("div");
         unosKontejner.className="unosKontejner";
         host.appendChild(unosKontejner);
 
         this.prikaziUnos(unosKontejner);
+
+        let recID=recepcionerSelect.options[recepcionerSelect.selectedIndex].value;
+        let recepcioner;
+
+        this.Recepcioneri.forEach(r=>{
+
+            if(r.id==recID){
+                recepcioner=r;
+            }
+        }); 
+
+        this.prikaziPodatke(podaciKontejner);
     }
 
     prikaziPodatke(host){
@@ -174,18 +182,18 @@ export class Hotel{
         .then(s=>{
             s.json().then(sobe=>{
                 sobe.forEach(s=>{
-                 
+                    
                     this.Sobe.forEach(sb=>{
 
                         if (sb.id===s.sobaID){
+
                             let gost=new Gost(s.gost.gostID, s.gost.ime, s.gost.prezime, s.gost.brojLicneKarte);
                             sb.gost=gost;
                             recepcioner.Sobe.push(sb);
                         }
                     });  
                 });
-                console.log(this.Sobe);
-                console.log(recepcioner.Sobe);
+
                 let hotel=this.kontejner.querySelector(".prikazKontejner");
                 hotel.innerHTML="";
                 this.prikaziSobe(hotel, recepcioner);
@@ -469,7 +477,7 @@ export class Hotel{
             soba.appendChild(kat);
 
             let gost=document.createElement("label");
-            s.izdata===true?gost.innerHTML="Gost: "+s.gost.ime+" "+s.gost.prezime : gost.innerHTML="Prazna";
+            recepcioner.Sobe.includes(s)?gost.innerHTML="Gost: "+s.gost.ime+" "+s.gost.prezime : gost.innerHTML=" ";
             soba.appendChild(gost);
 
             spratovi[brS-1].appendChild(soba);
